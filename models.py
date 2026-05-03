@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from database import Base
 
+# 👤 USER
 class User(Base):
     __tablename__ = "users"
 
@@ -10,9 +11,7 @@ class User(Base):
     password = Column(String)
     role = Column(String)
 
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
-
+# 📁 PROJECT
 class Project(Base):
     __tablename__ = "projects"
 
@@ -21,8 +20,9 @@ class Project(Base):
     description = Column(String)
     created_by = Column(Integer, ForeignKey("users.id"))
 
+# 📌 TASK (ONLY ONE CLASS)
 class Task(Base):
-    __tablename__ = "tasks"
+    __tablename__ = "tasks_new"
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
@@ -30,3 +30,4 @@ class Task(Base):
     status = Column(String, default="Todo")
     assigned_to = Column(Integer, ForeignKey("users.id"))
     project_id = Column(Integer, ForeignKey("projects.id"))
+    due_date = Column(DateTime, nullable=True)  # ✅ added

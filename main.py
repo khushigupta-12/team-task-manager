@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 import models
 import schemas
@@ -54,7 +55,6 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
 
     return {"access_token": token}
 
-#  CREATE PROJECT (Admin only)
 # 📁 CREATE PROJECT (Admin only)
 @app.post("/projects")
 def create_project(
@@ -82,13 +82,12 @@ def create_project(
 
     return {"message": "Project created by admin"}
 
-#  GET ALL PROJECTS
+# 📁 GET PROJECTS
 @app.get("/projects")
 def get_projects(db: Session = Depends(get_db)):
-    projects = db.query(models.Project).all()
-    return projects
+    return db.query(models.Project).all()
 
-#  CREATE TASK
+# 📌 CREATE TASK
 @app.post("/tasks")
 def create_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
     new_task = models.Task(
@@ -96,7 +95,8 @@ def create_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
         description=task.description,
         assigned_to=task.assigned_to,
         project_id=task.project_id,
-        status="Todo"
+        status="Todo",
+        due_date=task.due_date
     )
     db.add(new_task)
     db.commit()
@@ -104,12 +104,12 @@ def create_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
 
     return {"message": "Task created"}
 
-#  GET ALL TASKS
+# 📌 GET TASKS
 @app.get("/tasks")
 def get_tasks(db: Session = Depends(get_db)):
     return db.query(models.Task).all()
 
-#  UPDATE TASK STATUS
+# 📌 UPDATE TASK
 @app.put("/tasks/{task_id}")
 def update_task(task_id: int, task: schemas.TaskUpdate, db: Session = Depends(get_db)):
     db_task = db.query(models.Task).filter(models.Task.id == task_id).first()
@@ -122,21 +122,27 @@ def update_task(task_id: int, task: schemas.TaskUpdate, db: Session = Depends(ge
 
     return {"message": "Task updated"}
 
-from datetime import datetime
-
+# 📊 DASHBOARD
 @app.get("/dashboard")
 def dashboard(user_id: int = 1, db: Session = Depends(get_db)):
     tasks = db.query(models.Task).filter(models.Task.assigned_to == user_id).all()
 
     total = len(tasks)
+
     todo = len([t for t in tasks if t.status == "Todo"])
     in_progress = len([t for t in tasks if t.status == "In Progress"])
     done = len([t for t in tasks if t.status == "Done"])
+
+    overdue = len([
+        t for t in tasks
+        if t.due_date and t.due_date < datetime.now() and t.status != "Done"
+    ])
 
     return {
         "total_tasks": total,
         "todo": todo,
         "in_progress": in_progress,
         "done": done,
+        "overdue": overdue,
         "tasks": tasks
     }
