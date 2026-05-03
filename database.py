@@ -1,7 +1,8 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = "postgresql+psycopg2://postgres:ebHzhPuDYgwXjMSyvEhkGtxLYpGzRcdx@switchyard.proxy.rlwy.net:15084/railway"
+DATABASE_URL = os.getenv("DATABASE_URL").replace("postgresql://", "postgresql+psycopg2://")
 
 engine = create_engine(DATABASE_URL)
 
