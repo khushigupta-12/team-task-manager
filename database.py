@@ -1,11 +1,13 @@
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
 
-DATABASE_URL = os.getenv("DATABASE_URL").replace("postgresql://", "postgresql+psycopg2://")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_engine(DATABASE_URL)
+print("DEBUG DATABASE_URL:", DATABASE_URL)  # add this line
 
-SessionLocal = sessionmaker(bind=engine)
+if not DATABASE_URL:
+    raise Exception("DATABASE_URL not set!")
 
-Base = declarative_base()
+DATABASE_URL = DATABASE_URL.replace(
+    "postgresql://",
+    "postgresql+psycopg2://"
+)
